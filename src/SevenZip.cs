@@ -52,10 +52,13 @@ internal static class SevenZip
         if (assembly.GetManifestResourceInfo("payload/7z.exe") is null)
             return null;
 
-        string dir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "7zcvt", "engine-" + Program.Version);
+        // Named after the bundled engine, not after 7zcvt: bumping the tool must not
+        // leave another copy of the same 7-Zip behind.
+        string root = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "7zcvt");
+        string dir = Path.Combine(root, "engine-" + EngineVersion);
         Directory.CreateDirectory(dir);
+        RemoveStaleEngines(root, dir);
 
         string exe = Path.Combine(dir, "7z.exe");
         foreach (string name in new[] { "7z.exe", "7z.dll", "License.txt" })
@@ -73,6 +76,22 @@ internal static class SevenZip
         }
 
         return File.Exists(exe) ? exe : null;
+    }
+
+    /// <summary>Version of the 7-Zip build embedded in this executable (see assets/).</summary>
+    private const string EngineVersion = "25.01";
+
+    /// <summary>Drops engine folders left by earlier versions; one in use simply stays.</summary>
+    private static void RemoveStaleEngines(string root, string current)
+    {
+        // Materialised first: deleting while enumerating makes the walk skip entries.
+        foreach (string dir in Directory.GetDirectories(root, "engine-*"))
+        {
+            if (string.Equals(dir, current, StringComparison.OrdinalIgnoreCase)) continue;
+            try { Directory.Delete(dir, recursive: true); }
+            catch (IOException) { }              // still running from that copy
+            catch (UnauthorizedAccessException) { }
+        }
     }
 
     public static (int Code, string Error) Run(string engine, params string[] args)

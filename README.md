@@ -68,7 +68,7 @@ The tool drives a 7-Zip executable rather than reimplementing the formats. It lo
 1. `--7z PATH`
 2. `7z.exe` on `PATH`
 3. `%ProgramFiles%\7-Zip\7z.exe`, the x86 variant, `%LOCALAPPDATA%\Programs\7-Zip\7z.exe`
-4. the copy bundled into the executable, unpacked once into `%LOCALAPPDATA%\7zcvt\engine-<version>\`
+4. the copy bundled into the executable, unpacked once into `%LOCALAPPDATA%\7zcvt\engine-<7-Zip version>\`
 
 So an installed 7-Zip is used when present (usually newer), and the tool still works on a machine without one.
 
@@ -97,7 +97,7 @@ The version lives in one place: `<Version>` in `src/7zcvt.csproj`. Bump it on ev
 - **minor** (`0.2.0` -> `0.3.0`) — new options or behaviour, existing commands keep working
 - **major** (`0.2.0` -> `1.0.0`) — a removed or repurposed option, or a different default
 
-The version also names the bundled engine folder (`%LOCALAPPDATA%\7zcvt\engine-<version>`), so a bump ships a fresh copy of the engine as well.
+The bundled engine has its own folder named after the 7-Zip version (`%LOCALAPPDATA%\7zcvt\engine-25.01`), so bumping 7zcvt does not leave another copy of the same engine behind. Folders from other engine versions are removed on the next run that needs the bundled copy.
 
 ## Build
 
