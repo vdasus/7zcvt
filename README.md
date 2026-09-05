@@ -38,17 +38,21 @@ The source is only ever removed after the result has been proven complete. Every
 
 | Option | Meaning |
 | --- | --- |
-| `-o DIR` | write results to `DIR` (default: next to the source) |
-| `-r` | scan input directories recursively for archives |
-| `-d N` | repack nested archives up to N levels deep (default 8, `0` = off) |
-| `-mxN` | compression level 0..9 (default 9) |
-| `-f` | overwrite an existing `.7z` |
-| `--delete` | delete the source after the result is verified |
-| `--only-smaller` | discard the result when it is not smaller than the source |
-| `--max-size SIZE` | abort an archive whose contents exceed SIZE (default `10g`) |
-| `--7z PATH` | path to the 7z executable to use |
-| `-q` | quiet |
+| `-o`, `--output DIR` | write results to `DIR` (default: next to the source) |
+| `-r`, `--recurse` | scan input directories recursively for archives |
+| `-d`, `--depth N` | repack nested archives up to N levels deep (default 8, `0` = off) |
+| `-l`, `--level N` | compression level 0..9 (default 9); the 7-Zip form `-mx9` also works |
+| `-f`, `--force` | overwrite an existing `.7z` |
+| `-D`, `--delete` | delete the source after the result is verified |
+| `-s`, `--only-smaller` | discard the result when it is not smaller than the source |
+| `-M`, `--max-size SIZE` | abort an archive whose contents exceed SIZE (default `10g`) |
+| `-e`, `--engine PATH` | path to the 7z executable to use (`--7z` is an alias) |
+| `-q`, `--quiet` | quiet |
+| `-h`, `--help` | usage |
+| `-v`, `--version` | print version |
 | `--selftest` | build a nested archive, convert it, verify the contents survive |
+
+Every option has a short and a long form. A long option takes its value either way — `--depth 4` or `--depth=4` — and on Windows the `/flag` form works too: `/r`, `/depth 4`, `/delete`.
 
 Exit codes: `0` success, `1` at least one archive failed, `2` bad arguments, `3` no 7-Zip engine.
 
@@ -91,6 +95,10 @@ dotnet publish src\7zcvt.csproj -c Release -r win-x64 --self-contained -o dist `
 ```
 
 `assets/7z.exe` and `assets/7z.dll` are the bundled engine (7-Zip 25.01 x64, taken from the official installer). They are embedded only if the `assets` folder is present; without it the build still works and requires an installed 7-Zip. 7-Zip is by Igor Pavlov and is licensed under the GNU LGPL — see `assets/License.txt`.
+
+## License
+
+MIT — see `LICENSE`. The bundled 7-Zip binaries in `assets/` keep their own LGPL license.
 
 ## Origin and disclaimer
 

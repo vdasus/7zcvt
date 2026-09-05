@@ -44,13 +44,13 @@ internal static class Program
     {
         Console.OutputEncoding = Encoding.UTF8;
 
-        if (args.Length == 0 || args[0] is "-h" or "--help" or "/?")
+        if (args.Length == 0 || args[0] is "-h" or "--help" or "-?" or "/?" or "/h" or "/help")
         {
             PrintUsage();
             return args.Length == 0 ? 1 : 0;
         }
 
-        if (args[0] == "--version")
+        if (args[0] is "-v" or "--version" or "/v" or "/version")
         {
             Console.WriteLine($"7zcvt {Version} by {Author}");
             return 0;
@@ -82,7 +82,7 @@ internal static class Program
 
         Log($"engine: {engine}");
 
-        if (args[0] == "--selftest")
+        if (args.Any(a => Flag(a) == "--selftest"))
             return SelfTest.Run(engine) ? 0 : 1;
 
         var targets = ExpandInputs(options);
@@ -121,33 +121,53 @@ internal static class Program
         var o = new Options();
         for (int i = 0; i < args.Length; i++)
         {
-            string a = args[i];
-            string Next(string name) => ++i < args.Length ? args[i] : throw new ArgumentException($"{name} requires a value");
+            // Every option has a short and a long form; on Windows /flag works as well.
+            // A value may follow the option or be attached with '=' (--depth 4, --depth=4).
+            string a = Flag(args[i]);
+            string? inline = null;
+            if (a.StartsWith("--", StringComparison.Ordinal) && a.IndexOf('=') is int eq && eq > 0)
+            {
+                inline = a[(eq + 1)..];
+                a = a[..eq];
+            }
+
+            string Next(string name) => inline ?? (++i < args.Length ? args[i]
+                : throw new ArgumentException($"{name} requires a value"));
 
             switch (a)
             {
                 case "--selftest": break;
-                case "-r": o.ScanDirs = true; break;
-                case "-f": o.Force = true; break;
-                case "-q": o.Quiet = true; break;
-                case "--delete": o.DeleteSource = true; break;
-                case "--only-smaller": o.OnlySmaller = true; break;
-                case "-o": o.OutputDir = Next("-o"); break;
-                case "--7z": o.EnginePath = Next("--7z"); break;
-                case "-d": o.Depth = ParseInt(Next("-d"), 0, 64); break;
-                case "--max-size": o.MaxBytes = ParseSize(Next("--max-size")); break;
+                case "-r" or "--recurse" or "--recursive": o.ScanDirs = true; break;
+                case "-f" or "--force": o.Force = true; break;
+                case "-q" or "--quiet": o.Quiet = true; break;
+                case "-D" or "--delete": o.DeleteSource = true; break;
+                case "-s" or "--only-smaller": o.OnlySmaller = true; break;
+                case "-o" or "--output": o.OutputDir = Next(a); break;
+                case "-e" or "--engine" or "--7z": o.EnginePath = Next(a); break;
+                case "-d" or "--depth": o.Depth = ParseInt(Next(a), 0, 64); break;
+                case "-l" or "--level": o.Level = ParseInt(Next(a), 0, 9); break;
+                case "-M" or "--max-size": o.MaxBytes = ParseSize(Next(a)); break;
                 default:
-                    if (a.StartsWith("-mx", StringComparison.Ordinal))
+                    if (a.StartsWith("-mx", StringComparison.Ordinal)) // 7-Zip style: -mx9, -mx=9
                         o.Level = ParseInt(a[3..].TrimStart('='), 0, 9);
                     else if (a.StartsWith('-') && a.Length > 1)
-                        throw new ArgumentException($"unknown option '{a}'");
+                        throw new ArgumentException($"unknown option '{args[i]}'");
                     else
-                        o.Inputs.Add(a);
+                        o.Inputs.Add(args[i]);
                     break;
             }
         }
 
         return o;
+    }
+
+    /// <summary>Turns a Windows-style /flag into -flag or --flag; leaves paths and everything else alone.</summary>
+    private static string Flag(string arg)
+    {
+        if (!OperatingSystem.IsWindows() || arg.Length < 2 || arg[0] != '/') return arg;
+        string name = arg[1..];
+        if (name.Contains('/') || name.Contains('\\') || name == "?") return arg;
+        return name.Length == 1 || name.StartsWith("mx", StringComparison.Ordinal) ? "-" + name : "--" + name;
     }
 
     private static int ParseInt(string s, int min, int max) =>
@@ -215,21 +235,26 @@ internal static class Program
 
         Usage: 7zcvt [options] <file|dir|mask>...
 
-          -o DIR          write results to DIR (default: next to the source)
-          -r              scan input directories recursively for archives
-          -d N            repack archives nested up to N levels deep (default 8, 0 = off)
-          -mxN            compression level 0..9 (default 9)
-          -f              overwrite an existing .7z
-          --delete        delete the source after the result is verified
-          --only-smaller  discard the result when it is not smaller than the source
-          --max-size SIZE abort an archive whose contents exceed SIZE (default 10g)
-          --7z PATH       path to the 7z executable to use
-          -q              quiet
-          --selftest      run a built-in end-to-end check
-          --version       print version
+          -o, --output DIR     write results to DIR (default: next to the source)
+          -r, --recurse        scan input directories recursively for archives
+          -d, --depth N        repack archives nested up to N levels deep (default 8, 0 = off)
+          -l, --level N        compression level 0..9 (default 9); -mx9 also works
+          -f, --force          overwrite an existing .7z
+          -D, --delete         delete the source after the result is verified
+          -s, --only-smaller   discard the result when it is not smaller than the source
+          -M, --max-size SIZE  abort an archive whose contents exceed SIZE (default 10g)
+          -e, --engine PATH    path to the 7z executable to use (--7z is an alias)
+          -q, --quiet          quiet
+          -h, --help           this text
+          -v, --version        print version
+              --selftest       run a built-in end-to-end check
+
+        A long option takes its value either way: --depth 4 or --depth=4.
+        On Windows the /flag form works too: /r, /depth 4, /delete.
 
         Examples:
-          7zcvt aa.zip                  aa.zip  -> aa.7z
-          7zcvt -r -f --delete D:\arc   repack a whole tree in place
+          7zcvt aa.zip                   aa.zip  -> aa.7z
+          7zcvt -r -f -D D:\arc          repack a whole tree in place
+          7zcvt --recurse --force --delete D:\arc   the same, long form
         """);
 }
