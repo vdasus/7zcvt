@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>7zcvt</AssemblyName>
+    <Version>0.2.0</Version>
+    <Authors>vdasus</Authors>
+    <Company>vdasus</Company>
+    <Product>7zcvt</Product>
+    <Description>Repacks archives into 7z, nested archives included.</Description>
+    <Copyright>vdasus</Copyright>
+    <DebugType>none</DebugType>
+    <RootNamespace>SevenZcvt</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <PublishAot>true</PublishAot>
+    <StripSymbols>true</StripSymbols>
+    <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <EventSourceSupport>false</EventSourceSupport>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+    <AutoreleasePoolSupport>false</AutoreleasePoolSupport>
+  </PropertyGroup>
+
+  <!-- Bundled 7-Zip engine: used only when no 7z is installed on the machine. -->
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)../assets/7z.exe')">
+    <EmbeddedResource Include="../assets/7z.exe" LogicalName="payload/7z.exe" />
+    <EmbeddedResource Include="../assets/7z.dll" LogicalName="payload/7z.dll" />
+    <EmbeddedResource Include="../assets/License.txt" LogicalName="payload/License.txt" />
+  </ItemGroup>
+
+</Project>
