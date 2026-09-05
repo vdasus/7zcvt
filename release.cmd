@@ -14,10 +14,8 @@ call "%~dp0build.cmd" || exit /b 1
 set NOTES=%TEMP%\7zcvt-release-%VER%.md
 > "%NOTES%" echo Single self-contained Windows x64 binary: no .NET runtime and no 7-Zip install required.
 >>"%NOTES%" echo.
-for /f "skip=1 tokens=* delims=" %%h in ('certutil -hashfile "%~dp0dist\7zcvt.exe" SHA256 ^| findstr /r "^[0-9a-f]"') do (
-  if not defined HASH set HASH=%%h
-)
->>"%NOTES%" echo SHA-256: `!HASH: =!`
+for /f %%h in ('powershell -NoProfile -Command "(Get-FileHash '%~dp0dist\7zcvt.exe' -Algorithm SHA256).Hash.ToLower()"') do set HASH=%%h
+>>"%NOTES%" echo SHA-256: `!HASH!`
 >>"%NOTES%" echo.
 >>"%NOTES%" echo See the README for options and the data-safety rules.
 
