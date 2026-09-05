@@ -1,5 +1,10 @@
 # 7zcvt
 
+[![Release](https://img.shields.io/github/v/release/vdasus/7zcvt?logo=github)](https://github.com/vdasus/7zcvt/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/vdasus/7zcvt/total?logo=github)](https://github.com/vdasus/7zcvt/releases)
+[![License](https://img.shields.io/github/license/vdasus/7zcvt)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078d4?logo=windows)](https://github.com/vdasus/7zcvt/releases/latest)
+
 by vdasus
 
 Repacks archives into 7z, including archives nested inside them — an rcvt-style converter with 7z as the target format.
@@ -66,6 +71,23 @@ The tool drives a 7-Zip executable rather than reimplementing the formats. It lo
 4. the copy bundled into the executable, unpacked once into `%LOCALAPPDATA%\7zcvt\engine-<version>\`
 
 So an installed 7-Zip is used when present (usually newer), and the tool still works on a machine without one.
+
+## Releasing
+
+`release.cmd` does the whole hand-off: it builds, tags and publishes.
+
+```powershell
+.\release.cmd
+```
+
+It refuses to run on a dirty working tree or an existing tag, then:
+
+1. reads `<Version>` from `src/7zcvt.csproj` — bump it first, see below
+2. runs `build.cmd` (AOT publish into `dist\`) and `dist\7zcvt.exe --selftest`
+3. creates and pushes the annotated tag `v<version>`
+4. creates the GitHub release and uploads `dist\7zcvt.exe` with its SHA-256
+
+Needs `gh` logged in (`gh auth status`).
 
 ## Versioning
 
