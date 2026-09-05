@@ -29,11 +29,13 @@ internal static class Program
 
     public const string Author = "vdasus";
 
-    // Container formats worth repacking. Disk images, installers and firmware
-    // images are deliberately excluded: unpacking them changes their meaning.
+    // Container formats worth repacking. Disk images, installers, firmware images
+    // and .jar are deliberately excluded: unpacking them changes their meaning.
+    // A .jar named on the command line is still converted; it is only skipped when
+    // found inside another archive.
     private static readonly HashSet<string> ArchiveExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".7z", ".zip", ".zipx", ".jar", ".rar", ".arj", ".lzh", ".lha", ".cab",
+        ".7z", ".zip", ".zipx", ".rar", ".arj", ".lzh", ".lha", ".cab",
         ".tar", ".gz", ".tgz", ".bz2", ".tbz", ".tbz2", ".xz", ".txz", ".z", ".taz",
         ".lzma", ".zst", ".tzst",
     };

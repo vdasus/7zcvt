@@ -17,7 +17,7 @@ Repacks archives into 7z, including archives nested inside them — an rcvt-styl
 ## What it does
 
 1. Extracts the source archive with 7-Zip (zip, rar, arj, lzh, cab, tar, gz, bz2, xz, zst, ...).
-2. Walks the extracted tree and repacks every archive it finds there as `.7z`, up to `-d` levels deep.
+2. Walks the extracted tree and repacks every archive it finds there as `.7z`, up to `-d` levels deep. `.jar` files are left alone there, as are disk images and installers — repacking them breaks what they are. Naming a `.jar` on the command line still converts it.
 3. Packs everything back into one `.7z`, then verifies it with `7z t`.
 4. Reports the size delta. The source is kept unless `--delete` is given.
 
